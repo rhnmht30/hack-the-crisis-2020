@@ -1,27 +1,38 @@
 // import helper functions
 const { sendSuccess, sendError } = require("../utility/helpers");
+const { BAD_REQUEST } = require("../utility/statusCodes");
 
 module.exports.index = (req, res) => {
 	let apiDoc = {
 		getPatients: {
-			url: `http://${req.headers.host}/api/v1/getPatients`,
+			url: `http://${req.headers.host}/api/v1/patients`,
 			type: "GET",
-			access: "public"
+			specificQueries: [
+				{
+					query: "?pid=",
+					info: "get particular patients data by passing its id"
+				},
+				{
+					query: "?lid=",
+					info:
+						"get particular patients data in a location by passing only location id"
+				}
+			]
 		},
-		addPatient: {
-			url: `http://${req.headers.host}/api/v1/admin/add`,
-			type: "POST",
-			access: "admin"
-		},
-		updatePatient: {
-			url: `http://${req.headers.host}/api/v1/admin/update`,
-			type: "POST",
-			access: "admin"
-		},
-		sanitizeLocation: {
-			url: `http://${req.headers.host}/api/v1/admin/sanitizeLocation`,
+		getLocations: {
+			url: `http://${req.headers.host}/api/v1/locations`,
 			type: "GET",
-			access: "admin"
+			specificQueries: [
+				{
+					query: "?lid=",
+					info: "get particular locations data by passing its id"
+				},
+				{
+					query: "?range=?currLat=?currLong=",
+					info:
+						"pass this range with current lat and long to get all locations within"
+				}
+			]
 		}
 	};
 	sendSuccess(res, apiDoc);
@@ -82,19 +93,25 @@ module.exports.patientsData = async (req, res) => {
 };
 
 module.exports.locationsData = async (req, res) => {
-	let { lid, range, curLat, currlong } = req.query;
+	let { lid, range, currLat, currlong } = req.query;
 	let data = {};
 
 	if (lid) {
 		let loc = await Location.findById(lid);
 		data = loc;
 	} else {
+		if (!range || !currLat || !currLong)
+			return sendError(
+				res,
+				"Specify range and current position",
+				BAD_REQUEST
+			);
 		let query = {
 			location: {
 				$near: {
 					$geometry: {
 						type: "Point",
-						coordinates: [Number(currlong), Number(curLat)]
+						coordinates: [Number(currlong), Number(currLat)]
 					},
 					$maxDistance: range * 1000 //kms -> m
 				}
