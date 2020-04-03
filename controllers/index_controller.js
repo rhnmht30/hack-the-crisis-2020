@@ -93,7 +93,7 @@ module.exports.patientsData = async (req, res) => {
 };
 
 module.exports.locationsData = async (req, res) => {
-	let { lid, range, currLat, currlong } = req.query;
+	let { lid, range, currLat, currLong } = req.query;
 	let data = {};
 
 	if (lid) {
@@ -111,7 +111,7 @@ module.exports.locationsData = async (req, res) => {
 				$near: {
 					$geometry: {
 						type: "Point",
-						coordinates: [Number(currlong), Number(currLat)]
+						coordinates: [Number(currLong), Number(currLat)]
 					},
 					$maxDistance: range * 1000 //kms -> m
 				}
