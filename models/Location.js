@@ -7,7 +7,7 @@ const LocationSchema = new mongoose.Schema(
 		lastReportedCaseOn: { type: Date, default: Date.now },
 		isSanitized: { type: Boolean, default: false },
 		lastSanitizedOn: { type: Date },
-		totalCases: { type: Number, default: 0 }
+		totalCases: { type: Number, default: 1 }
 	},
 	{ timestamps: true }
 );

@@ -6,7 +6,7 @@ const PatientSchema = new mongoose.Schema(
 		state: { type: String, required: true },
 		age: { type: Number, required: true },
 		gender: { type: String, required: true },
-		reportedOn: { type: Date, required: true },
+		reportedOn: { type: Date, default: Date.now },
 		status: { type: String, required: true }, // confirmed, recovered, died
 		itinerary: [
 			{
