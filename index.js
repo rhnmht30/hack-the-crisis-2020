@@ -30,10 +30,13 @@ app.use(
 app.use(morgan("dev"));
 
 //load Schemas
-const User = require("./models/User");
+const User = require("./models/Admin");
+const Patient = require("./models/Patient");
+const Location = require("./models/Location");
 
 //Routes
 app.use("/api/v1/", require("./routes/api/v1/index"));
+app.use("/api/v1/admin", require("./routes/api/v1/admin"));
 
 app.use("*", notFound);
 
