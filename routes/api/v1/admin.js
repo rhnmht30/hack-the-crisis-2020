@@ -7,8 +7,6 @@ const {
 	login,
 	addPatient,
 	updatePatient,
-	patientsData,
-	locationsData,
 	sanitizeLocation
 } = require("../../../controllers/admin_controller");
 
@@ -23,11 +21,9 @@ let {
 // routes
 router.post("/", validateAdmin, catchErrors(register));
 router.post("/login", catchErrors(login));
-router.post("/add", allAuth, validatePatient, catchErrors(addPatient));
-router.post("/update", allAuth, catchErrors(updatePatient));
-router.get("/patients", allAuth, catchErrors(patientsData));
-router.get("/locations", allAuth, catchErrors(locationsData));
-router.get("/sanitize/:id", allAuth, catchErrors(sanitizeLocation));
+router.post("/add", validatePatient, catchErrors(addPatient));
+router.post("/update", catchErrors(updatePatient));
+router.get("/sanitize/:id", catchErrors(sanitizeLocation));
 
 // export router
 module.exports = router;

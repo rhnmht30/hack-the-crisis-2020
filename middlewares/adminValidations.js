@@ -24,12 +24,22 @@ module.exports.validateAdmin = (req, res, next) => {
 
 module.exports.validatePatient = (req, res, next) => {
 	const { city, state, age, gender, status, itinerary } = req.body;
-
 	if (!city || !state || !age || !gender || !status || !itinerary) {
 		return sendError(res, "All Fields are mandatory!!", NOT_ACCEPTABLE);
 	} else if (typeof itinerary !== "object" || itinerary.length === 0) {
 		return sendError(res, "Location field should an array", NOT_ACCEPTABLE);
+	} else if (wrongFormatOfItinerary(itinerary)) {
+		return sendError(res, "Location fields are missing", NOT_ACCEPTABLE);
 	} else {
 		return next();
 	}
+};
+
+const wrongFormatOfItinerary = it => {
+	return it
+		.map(i => {
+			if (i.lat === undefined || i.long === undefined) return false;
+			return true;
+		})
+		.includes(false);
 };

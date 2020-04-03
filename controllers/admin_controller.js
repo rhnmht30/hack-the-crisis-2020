@@ -1,7 +1,6 @@
 // import helper functions
 const { sendSuccess, sendError } = require("../utility/helpers");
 const { BAD_REQUEST } = require("../utility/statusCodes");
-const ObjectId = require("mongoose").Types.ObjectId;
 
 module.exports.register = async (req, res) => {
 	let { email } = req.body;
@@ -35,17 +34,22 @@ module.exports.addPatient = async (req, res) => {
 
 	for (let i = 0; i < itinerary.length; i++) {
 		let { lat, long } = itinerary[i];
-		let loc = await Location.findOne({ lat, long });
+		let loc = await Location.findOne({
+			[`location.coordinates`]: [Number(long), Number(lat)]
+		});
 
 		if (loc) {
-			loc.totalCases = loc.totalCases + 1;
+			loc.totalCases = loc.totalCases ? loc.totalCases + 1 : 1;
 			loc.lastReportedCaseOn = new Date(Date.now()).toISOString();
 			loc.isSanitized = false;
 			loc = await loc.save();
 		} else {
 			loc = new Location({
-				lat: itinerary[i].lat,
-				long: itinerary[i].long
+				location: {
+					type: "Point",
+					coordinates: [Number(long), Number(lat)]
+				},
+				lastReportedCaseOn: new Date(Date.now()).toISOString()
 			});
 
 			loc = await loc.save();
@@ -77,79 +81,6 @@ module.exports.updatePatient = async (req, res) => {
 	}
 
 	sendSuccess(res, patient);
-};
-
-module.exports.patientsData = async (req, res) => {
-	let { pid, query, city, state, age, gender, status, sortBy } = req.query;
-	let filters = {},
-		data = {};
-
-	if (pid) {
-		let patient = await Patient.findById(pid).populate(
-			"itinerary.location"
-		);
-		data = patient;
-	} else {
-		if (query) {
-			const regex = new RegExp(escapeRegex(query), "gi");
-			filters.$or = [{ city: regex }, { state: regex }];
-		}
-		if (city) {
-			filters.city = city;
-		}
-		if (state) {
-			filters.state = state;
-		}
-		if (age) {
-			filters.age = Number(age);
-		}
-		if (gender) {
-			filters.gender = gender;
-		}
-
-		if (status) {
-			filters.status = status;
-		}
-
-		let sortObj = {};
-		if (sortBy) {
-			sortBy.map(sort => {
-				if (sort === "createdAt") {
-					sortObj[sort] = "desc";
-				} else {
-					sortObj[sort] = "asc";
-				}
-			});
-		} else {
-			sortObj = {
-				createdAt: "desc"
-			};
-		}
-
-		let patients = await Patient.find(filters).sort(sortObj);
-		data = {
-			totalPatients: patients.length,
-			patients
-		};
-	}
-	sendSuccess(res, data);
-};
-
-module.exports.locationsData = async (req, res) => {
-	let { lid } = req.query;
-	let data = {};
-
-	if (lid) {
-		let loc = await Location.findById(lid);
-		data = loc;
-	} else {
-		let locs = await Location.find();
-		data = {
-			totalLocations: locs.length,
-			locs
-		};
-	}
-	sendSuccess(res, data);
 };
 
 module.exports.sanitizeLocation = async (req, res) => {
